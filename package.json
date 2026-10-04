@@ -1,0 +1,26 @@
+{
+  "name": "ai-study-buddy",
+  "version": "1.0.0",
+  "description": "AI-powered study buddy for computer science students: study notes, quizzes, and interview questions powered by Google Gemini API.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test-e2e.js"
+  },
+  "keywords": [
+    "gemini",
+    "ai",
+    "study-buddy",
+    "education",
+    "express",
+    "interview-prep"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^2.27.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

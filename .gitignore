@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment variables (NEVER COMMIT SENSITIVE KEYS)
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Editor & IDE directories
+.vscode/
+.idea/
+*.swp

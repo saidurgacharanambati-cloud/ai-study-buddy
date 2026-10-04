@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Study Buddy | Smart Study Notes, Quizzes & Interview Prep</title>
+  <meta name="description" content="AI-powered study assistant for computer science students. Generate structured study notes, interactive MCQ quizzes, and technical interview questions using Google Gemini API.">
+  <link rel="stylesheet" href="style.css">
+  <!-- Favicon using SVG data URI -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-area">
+        <span class="logo-icon" aria-hidden="true">🎓</span>
+        <div class="logo-text">
+          <h1>AI Study Buddy</h1>
+          <p class="subtitle">Smart CS Study Notes, Quizzes & Interview Prep</p>
+        </div>
+      </div>
+      <div class="api-status-badge" id="apiStatusBadge" title="Backend & Gemini connection status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking server...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    
+    <!-- Controls Card (Input + Mode + Difficulty) -->
+    <section class="control-card" aria-labelledby="formTitle">
+      <h2 id="formTitle" class="visually-hidden">Study Assistant Controls</h2>
+
+      <form id="studyForm" novalidate>
+        <!-- Topic Input -->
+        <div class="form-group">
+          <label for="topicInput" class="input-label">
+            <span>What do you want to learn today?</span>
+            <span class="char-count" id="charCount">0/120</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input 
+              type="text" 
+              id="topicInput" 
+              name="topic"
+              placeholder="e.g. Binary Search Trees, OS Deadlocks, SQL vs NoSQL, REST APIs..." 
+              autocomplete="off"
+              maxlength="120"
+              required
+            >
+            <button type="button" id="clearTopicBtn" class="clear-btn" aria-label="Clear topic input" hidden>×</button>
+          </div>
+          <div class="field-error" id="topicError" role="alert" aria-live="polite"></div>
+        </div>
+
+        <!-- Quick Topics Suggestion Chips -->
+        <div class="quick-topics">
+          <span class="quick-label">Try a topic:</span>
+          <div class="chips-container" role="group" aria-label="Quick topic suggestions">
+            <button type="button" class="topic-chip" data-topic="Binary Search Trees">Binary Search Trees</button>
+            <button type="button" class="topic-chip" data-topic="Operating System Deadlocks">OS Deadlocks</button>
+            <button type="button" class="topic-chip" data-topic="RESTful API Design">REST APIs</button>
+            <button type="button" class="topic-chip" data-topic="SQL vs NoSQL Databases">SQL vs NoSQL</button>
+            <button type="button" class="topic-chip" data-topic="Dynamic Programming">Dynamic Programming</button>
+          </div>
+        </div>
+
+        <div class="controls-row">
+          <!-- Study Mode Selection -->
+          <div class="form-group control-col">
+            <label class="input-label">Choose Study Mode</label>
+            <div class="mode-selector" role="radiogroup" aria-label="Study Mode Selection">
+              <label class="mode-option" id="modeOptionNotes">
+                <input type="radio" name="mode" value="notes" checked>
+                <div class="mode-card">
+                  <span class="mode-icon" aria-hidden="true">📝</span>
+                  <div class="mode-info">
+                    <span class="mode-title">Study Notes</span>
+                    <span class="mode-desc">Concepts, examples & pitfalls</span>
+                  </div>
+                </div>
+              </label>
+
+              <label class="mode-option" id="modeOptionQuiz">
+                <input type="radio" name="mode" value="quiz">
+                <div class="mode-card">
+                  <span class="mode-icon" aria-hidden="true">🎯</span>
+                  <div class="mode-info">
+                    <span class="mode-title">MCQ Quiz</span>
+                    <span class="mode-desc">5 questions with live score</span>
+                  </div>
+                </div>
+              </label>
+
+              <label class="mode-option" id="modeOptionInterview">
+                <input type="radio" name="mode" value="interview">
+                <div class="mode-card">
+                  <span class="mode-icon" aria-hidden="true">💼</span>
+                  <div class="mode-info">
+                    <span class="mode-title">Interview Prep</span>
+                    <span class="mode-desc">Real questions & model answers</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Difficulty Level Selection -->
+          <div class="form-group control-col difficulty-col">
+            <label class="input-label">Difficulty Level</label>
+            <div class="difficulty-selector" role="radiogroup" aria-label="Difficulty Level Selection">
+              <label class="difficulty-pill">
+                <input type="radio" name="difficulty" value="beginner">
+                <span class="pill-content">
+                  <span class="diff-indicator beginner"></span> Beginner
+                </span>
+              </label>
+              <label class="difficulty-pill">
+                <input type="radio" name="difficulty" value="intermediate" checked>
+                <span class="pill-content">
+                  <span class="diff-indicator intermediate"></span> Intermediate
+                </span>
+              </label>
+              <label class="difficulty-pill">
+                <input type="radio" name="difficulty" value="advanced">
+                <span class="pill-content">
+                  <span class="diff-indicator advanced"></span> Advanced
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="action-row">
+          <button type="submit" id="generateBtn" class="primary-btn">
+            <span class="btn-icon" aria-hidden="true">✨</span>
+            <span class="btn-text" id="btnText">Generate Study Content</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" aria-live="polite" id="resultsSection">
+      
+      <!-- Welcome Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon" aria-hidden="true">💡</div>
+        <h3>Ready to master your next CS topic?</h3>
+        <p>Pick a topic, select your preferred study mode and difficulty, and click <strong>Generate</strong>. Your AI Study Buddy will craft customized study materials powered by Gemini.</p>
+        <div class="feature-pills">
+          <span>⚡ Instant AI Generation</span>
+          <span>🧪 Interactive MCQs</span>
+          <span>💼 Tech Interview Ready</span>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" id="loadingState" hidden>
+        <div class="spinner-ring" aria-hidden="true"></div>
+        <h3 id="loadingTitle">Consulting Gemini AI...</h3>
+        <p id="loadingSubtext">Crafting personalized study materials for you</p>
+        <div class="loading-steps">
+          <span class="step-badge active" id="step1">1. Processing Topic</span>
+          <span class="step-badge" id="step2">2. Calling Gemini API</span>
+          <span class="step-badge" id="step3">3. Formatting Output</span>
+        </div>
+      </div>
+
+      <!-- Error State Banner -->
+      <div class="error-banner" id="errorBanner" hidden role="alert">
+        <div class="error-icon" aria-hidden="true">⚠️</div>
+        <div class="error-content">
+          <h4 id="errorTitle">Oops! Something went wrong</h4>
+          <p id="errorMessage">Unable to generate content.</p>
+          <div class="error-tips" id="errorTips"></div>
+        </div>
+        <button type="button" class="close-error-btn" id="closeErrorBtn" aria-label="Dismiss error">✕</button>
+      </div>
+
+      <!-- Content Container (Dynamic Output) -->
+      <div class="output-container" id="outputContainer" hidden>
+        <!-- Dynamic content injected by app.js -->
+      </div>
+
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
